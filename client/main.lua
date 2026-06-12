@@ -289,6 +289,7 @@ CreateThread(function()
     local unlockDoor = locale('unlock_door')
     local showUI
     local drawSprite = Config.DrawSprite
+    local glowLayers = Config.DrawSpriteGlow
 
     if drawSprite then
         local sprite1 = drawSprite[0]?[1]
@@ -306,12 +307,16 @@ CreateThread(function()
     local SetDrawOrigin = SetDrawOrigin
     local ClearDrawOrigin = ClearDrawOrigin
     local DrawSprite = drawSprite and DrawSprite
+    local math_sin = math.sin
+    local GetGameTimer = GetGameTimer
 
     while true do
         local num = #nearbyDoors
 
         if num > 0 then
             local ratio = drawSprite and GetAspectRatio(true)
+            local pulse = drawSprite and (0.7 + 0.3 * math_sin(GetGameTimer() / 600.0))
+
             for i = 1, num do
                 local door = nearbyDoors[i]
 
@@ -325,8 +330,24 @@ CreateThread(function()
 
                         if sprite then
                             SetDrawOrigin(door.coords.x, door.coords.y, door.coords.z)
+
+                            -- Draw neon glow layers behind the icon
+                            if glowLayers then
+                                for g = 1, #glowLayers do
+                                    local glow = glowLayers[g]
+                                    local glowScale = glow[1]
+                                    local glowAlpha = math.floor(glow[2] * pulse)
+                                    DrawSprite(sprite[1], sprite[2], sprite[3], sprite[4],
+                                        sprite[5] * glowScale, sprite[6] * glowScale * ratio,
+                                        sprite[7], sprite[8], sprite[9], sprite[10], glowAlpha)
+                                end
+                            end
+
+                            -- Draw main sharp icon on top
+                            local mainAlpha = math.floor(sprite[11] * (0.85 + 0.15 * pulse))
                             DrawSprite(sprite[1], sprite[2], sprite[3], sprite[4], sprite[5], sprite[6] * ratio,
-                                sprite[7], sprite[8], sprite[9], sprite[10], sprite[11])
+                                sprite[7], sprite[8], sprite[9], sprite[10], mainAlpha)
+
                             ClearDrawOrigin()
                         end
                     end
@@ -338,7 +359,43 @@ CreateThread(function()
 
         if ClosestDoor and ClosestDoor.distance < ClosestDoor.maxDistance then
             if Config.DrawTextUI and not ClosestDoor.hideUi and ClosestDoor.state ~= showUI then
-                lib.showTextUI(ClosestDoor.state == 0 and lockDoor or unlockDoor)
+                if ClosestDoor.state == 0 then
+                    lib.showTextUI('[E] Lock', {
+                        icon = 'fa-solid fa-lock',
+                        iconColor = '#00F0FF',
+                        style = {
+                            borderRadius = 8,
+                            backgroundColor = 'rgba(0, 20, 30, 0.85)',
+                            color = '#00F0FF',
+                            border = '1px solid rgba(0, 240, 255, 0.4)',
+                            boxShadow = '0 0 15px rgba(0, 240, 255, 0.3), 0 0 30px rgba(0, 240, 255, 0.1), inset 0 0 15px rgba(0, 240, 255, 0.05)',
+                            textShadow = '0 0 8px rgba(0, 240, 255, 0.6)',
+                            fontFamily = 'Inter, sans-serif',
+                            fontWeight = '600',
+                            letterSpacing = '1px',
+                            padding = '10px 18px',
+                            fontSize = '14px'
+                        }
+                    })
+                else
+                    lib.showTextUI('[E] Unlock', {
+                        icon = 'fa-solid fa-lock-open',
+                        iconColor = '#FF2D78',
+                        style = {
+                            borderRadius = 8,
+                            backgroundColor = 'rgba(30, 5, 15, 0.85)',
+                            color = '#FF2D78',
+                            border = '1px solid rgba(255, 45, 120, 0.4)',
+                            boxShadow = '0 0 15px rgba(255, 45, 120, 0.3), 0 0 30px rgba(255, 45, 120, 0.1), inset 0 0 15px rgba(255, 45, 120, 0.05)',
+                            textShadow = '0 0 8px rgba(255, 45, 120, 0.6)',
+                            fontFamily = 'Inter, sans-serif',
+                            fontWeight = '600',
+                            letterSpacing = '1px',
+                            padding = '10px 18px',
+                            fontSize = '14px'
+                        }
+                    })
+                end
                 showUI = ClosestDoor.state
             end
 

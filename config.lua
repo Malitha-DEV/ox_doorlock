@@ -9,12 +9,21 @@ Config.Notify = false
 Config.DrawTextUI = false
 
 ---Set the properties used by [DrawSprite](https://docs.fivem.net/natives/?_0xE7FFAE5EBF23D890).
+---Neon glow effect: draws multiple layers for glow + sharp icon on top.
 Config.DrawSprite = {
-    -- Unlocked
-    [0] = { 'mpsafecracking', 'lock_open', 0, 0, 0.018, 0.018, 0, 255, 255, 255, 100 },
+    -- Unlocked (Neon Cyan)
+    [0] = { 'mpsafecracking', 'lock_open', 0, 0, 0.020, 0.020, 0, 0, 240, 255, 220 },
 
-    -- Locked
-    [1] = { 'mpsafecracking', 'lock_closed', 0, 0, 0.018, 0.018, 0, 255, 255, 255, 100 },
+    -- Locked (Neon Magenta)
+    [1] = { 'mpsafecracking', 'lock_closed', 0, 0, 0.020, 0.020, 0, 255, 45, 120, 220 },
+}
+
+---Neon glow layers behind the main sprite (drawn underneath for glow halo effect).
+---Each entry: { scaleMultiplier, alphaValue }
+Config.DrawSpriteGlow = {
+    { 3.0, 15 },   -- outermost soft glow
+    { 2.2, 30 },   -- mid glow
+    { 1.6, 55 },   -- inner glow
 }
 
 ---Allow the specified ace principal to use 'command.doorlock'.
